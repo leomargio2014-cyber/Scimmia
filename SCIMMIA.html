@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Monkey War</title>
+<style>
+body{
+margin:0;
+background:#87ceeb;
+overflow:hidden;
+font-family:Arial;
+touch-action:none;
+}
+canvas{
+display:block;
+background:#7ec850;
+}
+#info{
+position:absolute;
+top:10px;
+left:10px;
+background:white;
+padding:8px;
+border-radius:8px;
+}
+button{
+font-size:18px;
+padding:10px;
+margin:5px;
+}
+#controls{
+position:absolute;
+bottom:10px;
+width:100%;
+text-align:center;
+}
+</style>
+</head>
+<body>
+
+<div id="info">
+Punti: <span id="score">0</span>
+</div>
+
+<canvas id="game"></canvas>
+
+<div id="controls">
+<button onclick="left=true">◀</button>
+<button onclick="shoot()">🍌</button>
+<button onclick="right=true">▶</button><br>
+<button ontouchend="left=false" onmouseup="left=false">Stop SX</button>
+<button ontouchend="right=false" onmouseup="right=false">Stop DX</button>
+</div>
+
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+function resize(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+}
+resize();
+window.onresize=resize;
+
+let score=0;
+
+const player={
+x:100,
+y:canvas.height-80,
+};
+
+let left=false;
+let right=false;
+
+let bullets=[];
+let enemies=[];
+
+function spawnEnemy(){
+enemies.push({
+x:canvas.width+30,
+y:canvas.height-80,
+alive:true
+});
+}
+
+setInterval(spawnEnemy,1500);
+
+function shoot(){
+bullets.push({
+x:player.x+20,
+y:player.y
+});
+}
+
+function update(){
+
+if(left) player.x-=5;
+if(right) player.x+=5;
+
+player.x=Math.max(0,Math.min(canvas.width-40,player.x));
+
+bullets.forEach(b=>b.x+=10);
+
+enemies.forEach(e=>e.x-=2);
+
+bullets.forEach(b=>{
+enemies.forEach(e=>{
+if(e.alive &&
+Math.abs(b.x-e.x)<20){
+e.alive=false;
+score++;
+document.getElementById("score").innerText=score;
+}
+});
+});
+
+bullets=bullets.filter(b=>b.x<canvas.width);
+enemies=enemies.filter(e=>e.alive && e.x>-40);
+}
+
+function draw(){
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ctx.font="40px serif";
+ctx.fillText("🦍",player.x,player.y);
+
+bullets.forEach(b=>{
+ctx.fillText("🍌",b.x,b.y);
+});
+
+enemies.forEach(e=>{
+ctx.fillText("🐵",e.x,e.y);
+});
+}
+
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+
+loop();
+
+window.addEventListener("keydown",e=>{
+if(e.key=="ArrowLeft")left=true;
+if(e.key=="ArrowRight")right=true;
+if(e.key==" ")shoot();
+});
+
+window.addEventListener("keyup",e=>{
+if(e.key=="ArrowLeft")left=false;
+if(e.key=="ArrowRight")right=false;
+});
+</script>
+
+</body>
+</html>
